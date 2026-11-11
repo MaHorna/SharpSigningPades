@@ -1,0 +1,79 @@
+PAdES Signer - certificate setup
+================================
+
+PAdES Signer signs with a certificate from your Windows certificate store.
+No certificate file or password is kept next to the program.
+
+
+STEP 1 - Install the certificate (once)
+---------------------------------------
+
+  * You received a .pfx or .p12 file:
+      1. Double-click the file.
+      2. Store location: "Current User", then Next.
+      3. Enter the password you were given.
+      4. Leave "Mark this key as exportable" UNticked (safer: the key cannot be copied off this PC).
+      5. Let Windows choose the store automatically, then Finish.
+
+  * You have a smart card or USB token:
+      Install the driver/software from the card issuer and plug the card in.
+      Windows then shows its certificate automatically.
+
+  Only a .pfx/.p12 file (the import asks for a password) or a card/token can sign.
+  A .cer or .crt file contains no private key and cannot sign.
+
+
+STEP 2 - Tell PAdES Signer which certificate to use
+---------------------------------------------------
+
+  Usually nothing to do.
+  If you have just ONE signing certificate, PAdES Signer finds it by itself.
+  The tray icon is a shield when it is signing, and its tooltip shows the certificate name.
+
+  If the tray icon shows a yellow warning instead (e.g. you have several certificates):
+
+    Option A - in the program (easiest)
+      1. Right-click the PAdES Signer tray icon (click ^ next to the clock if you do not see it).
+      2. Choose "Choose certificate...".
+      3. Select the certificate in the Windows dialog and click OK.
+      The program saves the choice and starts signing straight away.
+
+      (Without the tray icon: run  PadesSigner.exe --choose-cert)
+
+    Option B - by hand
+      1. Press Win+R, type  certmgr.msc  and press Enter.
+      2. Open Personal > Certificates.
+      3. Double-click your certificate. The General tab must say
+         "You have a private key that corresponds to this certificate".
+      4. Details tab > scroll to "Thumbprint" > click it > select the value below > Ctrl+C.
+      5. Right-click the PAdES Signer tray icon > "Edit settings" (opens appsettings.json in Notepad).
+      6. Paste the value between the quotes:
+             "StoreThumbprint": "paste here",
+         Spaces in the pasted value are fine.
+      7. Save (Ctrl+S). The program reloads the settings by itself.
+
+
+WHEN THE CERTIFICATE IS RENEWED
+-------------------------------
+
+  Install the new certificate as in Step 1.
+  - Automatic choice (StoreThumbprint empty): nothing else to do, the newest one is used.
+  - Chosen certificate (StoreThumbprint filled in): repeat Step 2, because a renewed
+    certificate has a new thumbprint.
+
+
+TROUBLESHOOTING
+---------------
+
+  Right-click the tray icon > "Open log" shows what happened and why.
+
+  "No valid signing certificate ... found"
+      The certificate is not installed, has expired, has no private key (a .cer file was
+      imported), or is not meant for signing (e.g. a website/TLS certificate).
+
+  "N signing certificates found"
+      Use Step 2 to pick one.
+
+  Smart card asks for a PIN for every file
+      Some cards (e.g. qualified signature cards) require this by design. Such cards are not
+      suitable for unattended signing; ask your certificate provider for an electronic seal.
